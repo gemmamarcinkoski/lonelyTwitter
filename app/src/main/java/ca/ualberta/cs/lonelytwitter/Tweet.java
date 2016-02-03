@@ -4,6 +4,7 @@ import java.util.Date;
 
 /**
  * Created by romansky on 1/12/16.
+ * Tweet object to date, get, and set tweets.
  */
 public abstract class Tweet {
     protected Date date;

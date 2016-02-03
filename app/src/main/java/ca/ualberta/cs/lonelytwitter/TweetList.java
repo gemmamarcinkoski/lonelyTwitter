@@ -5,6 +5,7 @@ import java.util.List;
 
 /**
  * Created by marcinko on 1/26/16.
+ * Class object to hold, add, retrieve, delete, and count tweets.
  */
 public class TweetList {
     private ArrayList<Tweet> tweets = new ArrayList<Tweet>();
@@ -12,6 +13,7 @@ public class TweetList {
     public void add (Tweet tweet) {
         tweets.add(tweet);
     }
+
     public boolean hasTweet(Tweet tweet){
         return tweets.contains(tweet);
     }

@@ -4,6 +4,7 @@ import java.util.Date;
 
 /**
  * Created by marcinko on 1/12/16.
+ * Small abstract class to edit time stamped dates to hold mood type.
  */
 public abstract class Mood {
     private Date date;
