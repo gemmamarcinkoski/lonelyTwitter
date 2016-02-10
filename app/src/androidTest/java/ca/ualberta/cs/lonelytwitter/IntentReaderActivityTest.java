@@ -56,6 +56,35 @@ public class IntentReaderActivityTest extends ActivityInstrumentationTestCase2{
 
     //TODO: Add your code here ...
 //-------------------------------------------------------------------------------
+    public void testReverseText(){
+        Intent intent = new Intent();
+        intent.putExtra(IntentReaderActivity.TEXT_TO_TRANSFORM_KEY, "message 4");
+        intent.putExtra(IntentReaderActivity.MODE_OF_TRANSFORM_KEY,
+                IntentReaderActivity.REVERSE);
+
+        setActivityIntent(intent);
+        IntentReaderActivity ira = (IntentReaderActivity) getActivity();
+        assertEquals("The text should be reversed!", "4 egassem",
+                ira.getText());
+    }
+
+    public void testDefaultMessage(){
+        Intent intent = new Intent();
+        setActivityIntent(intent);
+        IntentReaderActivity ira = (IntentReaderActivity) getActivity();
+
+        assertEquals("The text should be default text","default text", ira.getText());
+    }
+
+    public void testTextview(){
+        Intent intent = new Intent();
+        setActivityIntent(intent);
+        IntentReaderActivity ira = (IntentReaderActivity) getActivity();
+
+       ViewAsserts.assertOnScreen(ira.findViewById(R.id.intentText), ira.getWindow().getDecorView().findViewById(R.id.intentText));
+
+    }
+
 
 //-------------------------------------------------------------------------------
 }
