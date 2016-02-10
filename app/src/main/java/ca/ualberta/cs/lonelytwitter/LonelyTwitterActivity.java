@@ -25,68 +25,25 @@ import android.widget.ListView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-/**
- * The Main Activity for a small, personal twitter app to capture notes and commentS
- *  <p> it saves the input tweets in json files </p>
- *  @since 1.2.1
- *  @author marcinko and cmput 301 lab TA's
- * @version 1.2
- */
-
 public class LonelyTwitterActivity extends Activity {
-	/*COMMENTED OUR BECAUSE HAS NO LOGICAL PURPOSE
-	public ArrayList<String> listOfItems;
 
-	private int calculateTweetSize(){
-		//
-		return -1;
-	}
-
-	private String removeStopWords(String text){
-		//
-		return " ";
-	}
-
-	private void startSecondActivity(Intent intent){
-		//
-	}
-
-	public String someMethod(String s1, String s2, String s3, String s4){
-		return " ";
-	}
-
-	public  boolean evaluateOtherActivity(Intent intent){
-		int count = 0;
-		String S = "";
-		String expression1 = "", expression2 = "", expression3 = "", expression4 = "";
-		Intent intent1 = new Intent();
-		startSecondActivity(intent1);
-		String S = someMethod(expression1 + expression2 + expression3 + expression4);
-		someMethod(expression1 + expression2 + expression3 + expression4);
-		try{
-			int a = 1;
-			int b = 2;
-			if(a<2) {
-				someMethod("first choice");
-			} else{
-				someMethod("second choice");
-			}
-		}
-		return true;
-	}
-*/
 	private static final String FILENAME = "file.sav";
 	private EditText bodyText;
 	private ListView oldTweetsList;
 
 	private ArrayList<Tweet> tweets = new ArrayList<Tweet>();
-	private ArrayAdapter<Tweet> adapter;
 
-	/**
-	 * This Method is called when the activity is first created.
-	 * Listens for clicks by entered tweet, or for click to clear all tweets
-	 * Stays within same activity, no transitions.
-	 */
+	public ArrayAdapter<Tweet> getAdapter() {
+		return adapter;
+	}
+
+	public void setAdapter(ArrayAdapter<Tweet> adapter) {
+		this.adapter = adapter;
+	}
+
+	private ArrayAdapter<Tweet> adapter;
+	
+	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -95,7 +52,6 @@ public class LonelyTwitterActivity extends Activity {
 		bodyText = (EditText) findViewById(R.id.body);
 		Button saveButton = (Button) findViewById(R.id.save);
 		oldTweetsList = (ListView) findViewById(R.id.oldTweetsList);
-		Button clearButton = (Button) findViewById(R.id.clear);
 
 		saveButton.setOnClickListener(new View.OnClickListener() {
 
@@ -111,22 +67,20 @@ public class LonelyTwitterActivity extends Activity {
 				//saveInFile(text, new Date(System.currentTimeMillis()));
 				//finish();
 
-			}
-		});
-		clearButton.setOnClickListener(new View.OnClickListener() {
-
-			public void onClick(View v) {
-				deleteFile(FILENAME);
-				tweets.clear();
-				adapter.notifyDataSetChanged();
+				//
+				//
+				Intent intent = new Intent(LonelyTwitterActivity.this,
+						IntentReaderActivity.class);
+				intent.putExtra(IntentReaderActivity.TEXT_TO_TRANSFORM_KEY, "test message 1");
+				intent.putExtra(IntentReaderActivity.MODE_OF_TRANSFORM_KEY,
+						IntentReaderActivity.NORMAL);
+				startActivity(intent);
+				//
+				//
 			}
 		});
 	}
 
-	/**
-	 * On the start of the main activity and this method, the past tweets are
-	 * loaded from a json file and a new array adapter for the list is made.
-	 */
 	@Override
 	protected void onStart() {
 		// TODO Auto-generated method stub
@@ -138,10 +92,6 @@ public class LonelyTwitterActivity extends Activity {
 		oldTweetsList.setAdapter(adapter);
 	}
 
-	/**
-	 * Method to load past tweets from json file. Opens the file input stream,
-	 * and catches file not found exceptions of IO exception.
-	 */
 	private void loadFromFile() {
 		try {
 			FileInputStream fis = openFileInput(FILENAME);
@@ -160,10 +110,7 @@ public class LonelyTwitterActivity extends Activity {
 			throw new RuntimeException();
 		}
 	}
-
-	/**
-	 * Method to  save new tweets in file, called by the exiting of the app
-	 */
+	
 	private void saveInFile() {
 		try {
 			FileOutputStream fos = openFileOutput(FILENAME,

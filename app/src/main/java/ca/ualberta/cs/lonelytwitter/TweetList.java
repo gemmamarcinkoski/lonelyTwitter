@@ -1,16 +1,14 @@
 package ca.ualberta.cs.lonelytwitter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Created by marcinko on 1/26/16.
- * Class object to hold, add, retrieve, delete, and count tweets.
+ * Created by watts1 on 1/26/16.
  */
 public class TweetList {
-    private ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+    private ArrayList<Tweet> tweets= new ArrayList<Tweet>();
 
-    public void add (Tweet tweet) {
+    public void add(Tweet tweet){
         tweets.add(tweet);
     }
 
@@ -26,11 +24,4 @@ public class TweetList {
         tweets.remove(tweet);
     }
 
-    public List<Tweet> getTweets() {
-        return null;
-    }
-
-    public int getCount() {
-        return 0;
-    }
 }

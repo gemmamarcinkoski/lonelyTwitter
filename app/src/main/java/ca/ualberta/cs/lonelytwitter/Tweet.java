@@ -4,7 +4,6 @@ import java.util.Date;
 
 /**
  * Created by romansky on 1/12/16.
- * Tweet object to date, get, and set tweets.
  */
 public abstract class Tweet {
     protected Date date;
@@ -22,7 +21,13 @@ public abstract class Tweet {
         this.date = new Date();
     }
 
+    public Date getDate() {
+        return this.date;
+    }
 
+    public String getMessage() {
+        return this.message;
+    }
     public void setMessage(String message) throws TweetTooLongException {
         if (message.length() > 140) {
             throw new TweetTooLongException();
@@ -34,18 +39,8 @@ public abstract class Tweet {
         this.date = date;
     }
 
-    public Date getDate() {
-        return this.date;
-    }
-
-    public String getMessage() {
-        return this.message;
-    }
-
     @Override
     public String toString(){
         return date.toString() + " | " + message;
     }
-
-
 }
