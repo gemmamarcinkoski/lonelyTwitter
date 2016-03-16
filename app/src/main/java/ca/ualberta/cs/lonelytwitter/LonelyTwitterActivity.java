@@ -1,95 +1,118 @@
 package ca.ualberta.cs.lonelytwitter;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Date;
-
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class LonelyTwitterActivity extends Activity {
 
-	private static final String FILENAME = "file.sav";
-	private EditText bodyText;
-	private ListView oldTweetsList;
-	
-	/** Called when the activity is first created. */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+    private EditText bodyText;
+    private ListView oldTweetsList;
 
-		bodyText = (EditText) findViewById(R.id.body);
-		Button saveButton = (Button) findViewById(R.id.save);
-		oldTweetsList = (ListView) findViewById(R.id.oldTweetsList);
+    private ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+    private ArrayAdapter<Tweet> adapter;
 
-		saveButton.setOnClickListener(new View.OnClickListener() {
+    private Button saveButton;
 
-			public void onClick(View v) {
-				setResult(RESULT_OK);
-				String text = bodyText.getText().toString();
-				saveInFile(text, new Date(System.currentTimeMillis()));
-				finish();
+    private ImageButton pictureButton;
+    private Bitmap thumbnail;
+    static final int REQUEST_IMAGE_CAPTURE = 1234;
 
-			}
-		});
-	}
+    public ArrayAdapter<Tweet> getAdapter() {
+        return adapter;
+    }
 
-	@Override
-	protected void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-		String[] tweets = loadFromFile();
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-				R.layout.list_item, tweets);
-		oldTweetsList.setAdapter(adapter);
-	}
+    /**
+     * Called when the activity is first created.
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
 
-	private String[] loadFromFile() {
-		ArrayList<String> tweets = new ArrayList<String>();
-		try {
-			FileInputStream fis = openFileInput(FILENAME);
-			BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-			String line = in.readLine();
-			while (line != null) {
-				tweets.add(line);
-				line = in.readLine();
-			}
+        bodyText = (EditText) findViewById(R.id.tweetMessage);
+        oldTweetsList = (ListView) findViewById(R.id.tweetsList);
 
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return tweets.toArray(new String[tweets.size()]);
-	}
-	
-	private void saveInFile(String text, Date date) {
-		try {
-			FileOutputStream fos = openFileOutput(FILENAME,
-					Context.MODE_APPEND);
-			fos.write(new String(date.toString() + " | " + text)
-					.getBytes());
-			fos.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+        pictureButton = (ImageButton) findViewById(R.id.pictureButton);
+        pictureButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view){
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (intent.resolveActivity(getPackageManager()) != null){
+                    startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                }
+            }
+        });
+
+        saveButton = (Button) findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                String text = bodyText.getText().toString();
+                NormalTweet latestTweet = new NormalTweet(text);
+
+                tweets.add(0,latestTweet);
+
+                latestTweet.addThumbnail(thumbnail);
+
+                adapter.notifyDataSetChanged();
+
+                // Add the tweet to Elasticsearch
+                ElasticsearchTweetController.AddTweetTask addTweetTask = new ElasticsearchTweetController.AddTweetTask();
+                addTweetTask.execute(latestTweet);
+
+                bodyText.setText("");
+                pictureButton.setImageResource(android.R.color.transparent);
+                thumbnail = null;
+
+                setResult(RESULT_OK);
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Get the latest tweets from Elasticsearch
+        ElasticsearchTweetController.GetTweetsTask getTweetsTask = new ElasticsearchTweetController.GetTweetsTask();
+//        getTweetsTask.execute("test");
+        getTweetsTask.execute("");
+        try {
+            tweets = new ArrayList<Tweet>();
+            tweets.addAll(getTweetsTask.get());
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        // adapter = new ArrayAdapter<Tweet>(this, R.layout.list_item, tweets);
+        // Binds tweet list with view, so when our array updates, the view updates with it
+        adapter = new TweetAdapter(this, tweets); /* NEW! */
+        oldTweetsList.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK){
+            // if have taken the photo, get it
+            Bundle extras = data.getExtras();
+            thumbnail = (Bitmap)extras.get("data");
+            pictureButton.setImageBitmap(thumbnail);
+        }
+    }
+
 }
